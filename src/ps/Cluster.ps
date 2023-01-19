@@ -1,0 +1,36 @@
+%!PS-Adobe-2.0
+%%Creator: Graeme Newlands
+%%CreationDate: 1/17/2023
+%%End Comments
+
+% the import won't work with the SAFER option specified
+(lib/ClusterFunctions.ps) run
+
+/Cluster
+{
+    /originX xdef
+    /originY xdef
+    /numberOfNodes xdef
+    /replicationFactor xdef
+    /placeNumbers xdef
+
+    10 dict begin
+        /.ringOriginX originX def
+        /.ringOriginY originY def
+        /.fullRotation 360 def
+        /.baseRadius 30 def
+        /.arrowWidth 12 def
+        /.depthOfPointInDegrees 4 def   % the depth of the point
+        /.arrowOffsetMultiplier 2 def  % the amount that offsets are applied
+                                        % set to 0.5 for middle
+
+        /.segmentsPerRing numberOfNodes def    % ie, nodes per DC
+        /.numberOfRings replicationFactor def
+        DrawRing
+        placeNumbers true eq {PlaceNumbers} {} ifelse
+    end
+} def
+
+% draw a cluster origin 200,200 with RF 3 and no 
+% numbered nodes
+false 2 5 200 200 Cluster

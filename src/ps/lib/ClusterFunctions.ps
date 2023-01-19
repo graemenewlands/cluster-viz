@@ -1,0 +1,164 @@
+%!PS-Adobe-2.0
+%%Creator: Graeme Newlands
+%%CreationDate: 1/17/2023
+%%End Comments
+
+/xdef {exch def} bind def
+
+/Midpoint
+% given two points along an axis, return the mid point
+{
+    /p1 xdef
+    /p2 xdef
+
+    p1 p2 add 2 div
+
+} def
+
+/MidpointRadius
+% 60 12 midpoint_radius
+% todo: because I don't know the scope of these variables, they 
+% are being  declared with a variable prefix local to the method 
+% name!
+{
+    /mr_width xdef
+    /mr_radius xdef
+
+    mr_radius mr_width 2 div add
+} def
+
+/Arrow
+% arguments are passed in before the function call
+% ie. 360 360 60 12 4 0 358 arrow
+{ 
+    /thetaEnd xdef         % theta_end
+    /thetaStart xdef       % theta_start
+    /arrowDepth xdef
+    /width xdef
+    /radius xdef
+    /y xdef
+    /x xdef
+    /arrowMidPoint radius width MidpointRadius def
+
+    newpath
+    x y radius thetaStart thetaEnd arc
+    arrowMidPoint thetaEnd arrowDepth sub cos mul x add arrowMidPoint thetaEnd arrowDepth sub sin mul y add lineto
+    radius width add thetaEnd cos mul x add radius width add thetaEnd sin mul y add lineto
+    x y radius width add thetaEnd thetaStart arcn
+    arrowMidPoint thetaStart arrowDepth sub cos mul x add arrowMidPoint thetaStart arrowDepth sub sin mul y add lineto
+    radius thetaStart cos mul x add radius thetaStart sin mul y add lineto
+    closepath
+} def
+
+/MakeArrow
+% draw a complete arrow that is offset by a number mod the number of segments,
+% the arrow radius, which is the offset from the origin of the ring, and the loop
+% number, which represents the count of which arrow is being drawn in terms of 
+% which segment is being rendered
+%
+% the start angle is (loopNum + (offset/2)) * segment_size
+% the end angle is ((loopNum + 1) + (offset/2)) * segment_size
+{
+    /offset exch .segmentsPerRing mod def
+    /arrowRadius xdef
+    /loopNum xdef
+
+    /segment_size .fullRotation .segmentsPerRing div def
+    /startAngle loopNum offset .arrowOffsetMultiplier mul add segment_size mul def
+    /endAngle loopNum 1 add offset .arrowOffsetMultiplier mul add segment_size mul def
+    .ringOriginX .ringOriginY arrowRadius .arrowWidth .depthOfPointInDegrees startAngle endAngle Arrow
+    1 .segmentsPerRing 1 add div loopNum mul setgray
+    fill
+    4 setlinewidth
+    stroke
+} def
+
+/MakeArrowBorder
+% draw a complete arrow that is offset by a number mod the number of segments,
+% the arrow radius, which is the offset from the origin of the ring, and the loop
+% number, which represents the count of which arrow is being drawn in terms of 
+% which segment is being rendered
+%
+% the start angle is (loop_num + (offset/2)) * segment_size
+% the end angle is ((loop_num + 1) + (offset/2)) * segment_size
+{
+    /offset exch .segmentsPerRing mod def
+    /arrowRadius xdef
+    /loopNum xdef
+
+    /segment_size .fullRotation .segmentsPerRing div def
+    /startAngle loopNum offset .arrowOffsetMultiplier mul add segment_size mul def
+    /endAngle loopNum 1 add offset .arrowOffsetMultiplier mul add segment_size mul def
+    .ringOriginX .ringOriginY arrowRadius .arrowWidth .depthOfPointInDegrees startAngle endAngle Arrow
+    0 setgray
+    1 setlinewidth
+    stroke
+} def
+
+/MakeCircle
+% call make_arrow once for each node in the ring such 
+% that we form a complete circle
+{
+                    % the offset represents how much the circle is rotated by segment
+    /offset xdef
+                    % the radius has to be altered for each new circle, its read 
+                    % as a param
+    /circleBaseRadius xdef
+    0 1 .segmentsPerRing {
+        circleBaseRadius offset MakeArrow
+        } for
+    0 1 .segmentsPerRing {
+        circleBaseRadius offset MakeArrowBorder
+        } for
+} def
+
+/CenterShow { % usage: x y font fontsize (string) centreshow
+    /s xdef 
+    /fontsize xdef 
+    /font xdef
+    gsave moveto font findfont fontsize scalefont setfont
+    gsave s false charpath flattenpath pathbbox grestore
+    exch 4 -1 roll pop pop s stringwidth pop -0.5 mul % dx/2
+    3 1 roll sub 0.5 mul % dy/2
+    rmoveto s show grestore
+} bind def
+
+/DrawCircle
+{
+    /halfArrowWidth xdef
+    /radius xdef
+    /total_segments xdef
+    /seg_num xdef
+                                % the -1 mul indicates a clockwise direction
+    /theta .fullRotation total_segments div seg_num mul -1 mul def
+    /x .ringOriginX theta cos radius halfArrowWidth add mul add def
+    /y .ringOriginY theta sin radius halfArrowWidth add mul add def
+    x y halfArrowWidth 0 360 arc .95 setgray fill stroke
+    .1 setgray
+    x y /Courier-New 15 seg_num 2 string cvs CenterShow
+} def
+
+/DrawRing
+{
+    % use a 1 base start instead of 0 so we don't have two rings for a rep factor of 1
+    % start increment end {function} for
+    1 1 .numberOfRings {
+        /loopNumber xdef
+        % setting the offset to zero will mean that there is no rotation
+        % of the ring segments, ie:
+        % .baseRadius .arrowWidth loopNumber mul add 0 make_circle
+        % to rotate the rings, we need to supply the loopNumber
+        .baseRadius .arrowWidth loopNumber mul add loopNumber MakeCircle
+    } for
+} def
+
+/PlaceNumbers
+{
+    1 1 .segmentsPerRing {
+        /segmentNumber xdef
+        /nodeBaseRadius .baseRadius .arrowWidth add def
+        /allArrowsWidth .numberOfRings .arrowWidth mul def
+        /allArrowsWithDiv2 allArrowsWidth 2 div def
+        segmentNumber .segmentsPerRing nodeBaseRadius allArrowsWithDiv2 DrawCircle
+    } for
+} def

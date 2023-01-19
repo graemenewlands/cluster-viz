@@ -1,0 +1,42 @@
+%!PS-Adobe-2.0
+%%Creator: Graeme Newlands
+%%CreationDate: 1/17/2023
+%%End Comments
+
+% the import won't work with the SAFER option specified
+(lib/ClusterFunctions.ps) run
+
+%% http://www.egtry.com/tools/graphviz/custom_shape
+%% 
+%% explains that we get called 
+% [100 100   150 100   150 50    100 50     100 100]  4 true MyShape
+%%[(x1, y1), (x2, y1), (x2, y2), (x1, y2), (x1, y1)] numberOfSides fill
+
+/Cluster
+{
+    /fillFlag xdef
+    /sides xdef
+    /boundbox xdef  % this is the array
+    /x1 boundbox 0 get def
+    /y1 boundbox 1 get def
+    /x2 boundbox 2 get def
+    /y2 boundbox 5 get def
+
+    10 dict begin
+        /.ringOriginX x1 x2 Midpoint def
+        /.ringOriginY y1 y2 Midpoint def
+        /.fullRotation 360 def
+        /.baseRadius 30 def
+        /.arrowWidth 12 def
+        /.depthOfPointInDegrees 4 def   % the depth of the point
+        /.arrowOffsetMultiplier 2 def  % the amount that offsets are applied
+                                        % set to 0.5 for middle
+
+        /.segmentsPerRing 8 def    % ie, nodes per DC
+        /.numberOfRings sides def
+        DrawRing
+        PlaceNumbers
+    end
+} def
+
+[100 100   150 100   150 50    100 50     100 100]  2 true Cluster

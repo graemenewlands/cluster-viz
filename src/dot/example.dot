@@ -1,0 +1,9 @@
+digraph G {
+    DC1[image="5NodeRf2NoLabels.ps", label="DC1"];
+    DC2[image="5NodeRf3Labels.ps", label="DC2"];
+    DC3[image="8NodeRf2Labels.ps", label="DC3"];
+    DC1->DC2;
+    DC1->DC3;
+    DC2->DC3;
+    DC3->DC1;
+}
